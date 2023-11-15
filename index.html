@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Chat</title>
+</head>
+<body>
+  <h1>WebSocket Chat</h1>
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button id="sendButton">Send</button>
+  <ul id="messages"></ul>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:3520'); // ensure this matches your server port
+    const messages = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+  
+    ws.onmessage = (event) => {
+      if (typeof event.data === 'string') {
+        // It's a text message
+        const message = document.createElement('li');
+        message.textContent = event.data;
+        messages.appendChild(message);
+      } else if (event.data instanceof Blob) {
+        // It's a binary message, convert it to text
+        const reader = new FileReader();
+        reader.onload = function() {
+          const message = document.createElement('li');
+          message.textContent = reader.result;
+          messages.appendChild(message);
+        };
+        reader.readAsText(event.data);
+      }
+    };
+  
+    sendButton.onclick = sendMessage;
+  
+    messageInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  
+    function sendMessage() {
+      const message = messageInput.value;
+      if (message) { // send only if there's a message
+        ws.send(message);
+        messageInput.value = '';
+      }
+    }
+  </script>
+  
+  
+</body>
+</html>
